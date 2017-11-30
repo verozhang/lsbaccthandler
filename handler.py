@@ -3,11 +3,12 @@ import json
 
 class Job(dict):
 
-    def job2json(self):
-        new_json = json.dumps(Job)
-
+    def job2json(self, file):
+        new_json = json.dumps(self, sort_keys=True, indent=4)
+        print(new_json)
+        file.write(new_json)
         return new_json
-    # job2json
+    # job2jsont
 # Log
 
 
@@ -27,7 +28,6 @@ def getstat(job, log, prop, prop_type):
         if value[0] == '"':
             while value.count('"') % 2 == 1:
                 value = value + ' ' + log.__next__()
-
             value = value[1:-1]
 
     # handle integer
@@ -50,6 +50,7 @@ def getstat(job, log, prop, prop_type):
 
 filename = input('Input file name\n')
 infile = open(filename, 'r')
+outfile = open('json_out.json', 'w', encoding='utf-8')
 counter = 0
 next(infile)
 for line in infile:
@@ -94,11 +95,7 @@ for line in infile:
     getstat(job, log_line, 'jStatus', int)
     getstat(job, log_line, 'hostFactor', float)
     getstat(job, log_line, 'jobName', str)
-
-    # Change needed here
     getstat(job, log_line, 'command', str)
-
-#    getstat(job, log_line, 'lsfRusage', float)
     getstat(job, log_line, 'ru_utime', float)
     getstat(job, log_line, 'ru_stime', float)
     getstat(job, log_line, 'ru_maxrss', float)
@@ -137,3 +134,20 @@ for line in infile:
     getstat(job, log_line, 'warningAction', str)
     getstat(job, log_line, 'warningTimePeriod', int)
     getstat(job, log_line, 'chargedSAAP', str)
+    getstat(job, log_line, 'licenseProject', str)
+    getstat(job, log_line, 'app', str)
+    getstat(job, log_line, 'postExecCmd', str)
+    getstat(job, log_line, 'runTimeEstimation', int)
+    getstat(job, log_line, 'jubGroupName', str)
+    getstat(job, log_line, 'requeueEvalues', str)
+    getstat(job, log_line, 'option2', int)
+    getstat(job, log_line, 'resizeNotifyCmd', str)
+    getstat(job, log_line, 'lastResizeTime', int)
+    getstat(job, log_line, 'rsvId2', str)
+    getstat(job, log_line, 'jobDescription', str)
+    getstat(job, log_line, 'submitEXTNum', int)
+    getstat(job, log_line, 'submitEXTKey', str)
+    getstat(job, log_line, 'submitEXTValue', str)
+    getstat(job, log_line, 'numHostRusage', int)
+    job.job2json(outfile)
+
