@@ -1,21 +1,27 @@
 import json
+import mysql.connector
 
 
 class Job(dict):
-
     def job2json(self, file):
         new_json = json.dumps(self, sort_keys=True, indent=4)
         print(new_json)
         file.write(new_json)
         return new_json
-    # job2jsont
+    # job2json
+
+    def job2sql(self, cursor):
+        cursor.execute("INSERT INTO jobs("
+                       "")
+        return
+    # job2sql
 # Log
 
 
 # A generator for each property
 def gen(arr):
-    for i in range(10000):
-        yield arr[i]
+    for j in range(10000):
+        yield arr[j]
 # gen
 
 
@@ -48,18 +54,52 @@ def getstat(job, log, prop, prop_type):
 # getstat
 
 
+# Initialization.
 filename = input('Input file name\n')
 infile = open(filename, 'r')
 outfile = open('json_out.json', 'w', encoding='utf-8')
 counter = 0
+
+db = mysql.connector.connect(user='root', database='test', password='password')
+cur = db.cursor()
+cur.execute("CREATE TABLE jobs("
+            "Event_Type TEXT,"
+            "Version_Number TEXT,"
+            "Event_Time INT,"
+            "jobId INT,"
+            "userId INT,"
+            "options INT,"
+            "numProcessors INT,"
+            "submitTime INT,"
+            "beginTime INT,"
+            "termTime INT,"
+            "startTime INT,"
+            "userName TEXT,"
+            "queue TEXT,"
+            "resReq TEXT,"
+            "dependCond TEXT,"
+            "preExecCmd TEXT,"
+            "fromHost TEXT,"
+            "cwd TEXT,"
+            "inFile TEXT,"
+            "outFile TEXT,"
+            "errFile TEXT,"
+            "jobFile TEXT,"
+            "numAskedHosts INT"
+            ");")
+
+
+# Ignore the 1st line of file, as it is not data.
 next(infile)
+
+# Loop to deal with each line.
 for line in infile:
     counter += 1
     print("JOB no", counter)
     log_line = gen(line.split())
     job = Job()
 
-    getstat(job, log_line, 'Event_type', str)
+    getstat(job, log_line, 'Event_Type', str)
     getstat(job, log_line, 'Version_Number', str)
     getstat(job, log_line, 'Event_Time', int)
     getstat(job, log_line, 'jobId', int)
@@ -150,4 +190,4 @@ for line in infile:
     getstat(job, log_line, 'submitEXTValue', str)
     getstat(job, log_line, 'numHostRusage', int)
     job.job2json(outfile)
-
+    job.job2sql(cur)
