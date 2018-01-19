@@ -62,6 +62,7 @@ counter = 0
 
 db = mysql.connector.connect(user='root', database='test', password='password')
 cur = db.cursor()
+cur.execute("DROP TABLE jobs;")
 cur.execute("CREATE TABLE jobs("
             "Event_Type TEXT,"
             "Version_Number TEXT,"
