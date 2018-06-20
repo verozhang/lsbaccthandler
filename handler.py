@@ -16,14 +16,23 @@ class Job(dict):
         return new_json
     # job2json
 
-    def job2sql(self, cursor):
-        insert_command = """
-                         INSERT INTO jobs
-                         (jobId, userId, submitTime, beginTime, termTime)
-                         values
-                         (%d, %d, %d, %d, %d)
-                         """
-        cursor.execute(insert_command)
+    def job2sql(self, connect, cursor):
+        try:
+            cursor.execute("""
+                              INSERT INTO jobs
+                              (Event_Time, jobId, userId, submitTime, beginTime, termTime)
+                              values
+                              (%s, %s, %s, %s, %s, %s);
+                           """,
+                           (self['jobId'],
+                            self['Event_Time'],
+                            self['userId'],
+                            self['submitTime'],
+                            self['beginTime'],
+                            self['termTime']))
+            connect.commit()
+        except:
+            connect.rollback()
         return
     # job2sql
 
@@ -95,101 +104,99 @@ def handler():
         'database': 'test'
     }
 
-    sql_job_table = (
-        'CREATE TABLE IF NOT EXISTS jobs ('
-        'Event_Type TEXT,'
-        'Version_Number TEXT,'
-        'Event_Time INT,'
-        'jobId INT,'
-        'userId INT,'
-        'options INT,'
-        'numProcessors INT,'    
-        'submitTime INT,'
-        'beginTime INT,'
-        'termTime INT,'
-        'startTime INT,'
-        'userName TEXT,'
-        'queue TEXT,'
-        'resReq TEXT,'
-        'dependCond TEXT,'
-        'preExecCmd TEXT,'
-        'fromHost TEXT,'
-        'cwd TEXT,'
-        'PRIMARY KEY (Event_Time)'
-        ')'
-    )
-
-    'inFile TEXT,'
-    'outFile TEXT,'
-    'errFile TEXT,'
-    'jobFile TEXT,'
-    'numAskedHosts INT,'
-    # 'askedHosts'# How to handle THIS?!#
-    'numExHosts INT,'
-    # 'execHosts'# And how to handle THIS?!#
-    'jStatus INT,'
-    'hostFactor FLOAT,'
-    'jobName TEXT,'
-    'command TEXT,'
-    'ru_utime FLOAT,'
-    'ru_stime FLOAT,'
-    'ru_maxrss FLOAT,'
-    'ru_ixass FLOAT,'
-    'ru_ismrss FLOAT,'
-    'ru_idrss FLOAT,'
-    'ru_isrss FLOAT,'
-    'ru_minflt FLOAT,'
-    'ru_majflt FLOAT,'
-    'ru_nswap FLOAT,'
-    'ru_inblock FLOAT,'
-    'ru_outblock FLOAT,'
-    'ru_ioch FLOAT,'
-    'ru_msgsnd FLOAT,'
-    'ru_msgrcv FLOAT,'
-    'ru_nsignals FLOAT,'
-    'ru_nvcsw FLOAT,'
-    'ru_nivcsw FLOAT,'
-    'ru_exutime FLOAT,'
-    'mailUser TEXT,'
-    'projectName TEXT,'
-    'exitStatus INT,'
-    'maxNumProcessors INT,'
-    'loginShell TEXT,'
-    'timeEvent TEXT,'
-    'idx INT,'
-    'maxRMem INT,'
-    'maxRSwap INT,'
-    'inFileSpool TEXT,'
-    'commandSpool TEXT,'
-    'rsvId TEXT,'
-    'sla TEXT,'
-    'exceptMask INT,'
-    'additionalInfo TEXT,'
-    'exitInfo INT,'
-    'warningAction TEXT,'
-    'warningTimePeriod INT,'
-    'chargedSAAP TEXT,'
-    'licenseProject TEXT,'
-    'app TEXT,'
-    'postExecCmd TEXT,'
-    'runTimeEstimation INT,'
-    'jubGroupName TEXT,'
-    'requeueEvalues TEXT,'
-    'option2 INT,'
-    'resizeNotifyCmd TEXT,'
-    'lastResizeTime INT,'
-    'rsvId2 TEXT,'
-    'jobDescription TEXT,'
-    'submiVARCHARNum INT,'
-    'submiVARCHARKey TEXT,'
-    'submiVARCHARValue TEXT,'
-    'numHostRusage INT,'
+    sql_job_table = ("""
+        CREATE TABLE IF NOT EXISTS jobs (
+        Event_Type TEXT,
+        Version_Number TEXT,
+        Event_Time INT,
+        jobId INT,
+        userId INT,
+        options INT,
+        numProcessors INT,    
+        submitTime INT,
+        beginTime INT,
+        termTime INT,
+        startTime INT,
+        userName TEXT,
+        queue TEXT,
+        resReq TEXT,
+        dependCond TEXT,
+        preExecCmd TEXT,
+        fromHost TEXT,
+        cwd TEXT,
+        in_File TEXT,
+        out_File TEXT,
+        errFile TEXT,
+        jobFile TEXT,
+        numAskedHosts INT,
+        numExHosts INT,
+        jStatus INT,
+        hostFactor FLOAT,
+        jobName TEXT,
+        command TEXT,
+        ru_utime FLOAT,
+        ru_stime FLOAT,
+        ru_maxrss FLOAT,
+        ru_ixass FLOAT,
+        ru_ismrss FLOAT,
+        ru_idrss FLOAT,
+        ru_isrss FLOAT,
+        ru_minflt FLOAT,
+        ru_majflt FLOAT,
+        ru_nswap FLOAT,
+        ru_inblock FLOAT,
+        ru_outblock FLOAT,
+        ru_ioch FLOAT,
+        ru_msgsnd FLOAT,
+        ru_msgrcv FLOAT,
+        ru_nsignals FLOAT,
+        ru_nvcsw FLOAT,
+        ru_nivcsw FLOAT,
+        ru_exutime FLOAT,
+        mailUser TEXT,
+        projectName TEXT,
+        exitStatus INT,
+        maxNumProcessors INT,
+        loginShell TEXT,
+        timeEvent TEXT,
+        idx INT,
+        maxRMem INT,
+        maxRSwap INT,
+        in_FileSpool TEXT,
+        commandSpool TEXT,
+        rsvId TEXT,
+        sla TEXT,
+        exceptMask INT,
+        additionalInfo TEXT,
+        exitInfo INT,
+        warningAction TEXT,
+        warningTimePeriod INT,
+        chargedSAAP TEXT,
+        licenseProject TEXT,
+        app TEXT,
+        postExecCmd TEXT,
+        runTimeEstimation INT,
+        jubGroupName TEXT,
+        requeueEvalues TEXT,
+        option2 INT,
+        resizeNotifyCmd TEXT,
+        lastResizeTime INT,
+        rsvId2 TEXT,
+        jobDescription TEXT,
+        submiVARCHARNum INT,
+        submiVARCHARKey TEXT,
+        submiVARCHARValue TEXT,
+        numHostRusage INT,
+        PRIMARY KEY (Event_Time)
+        );
+    """)
+    # Caution: inFile and outFile used by SQL.
+    # askedHosts and execHosts not handled.
 
     sql_con = mysql.connector.connect(**sql_config)
     sql_cur = sql_con.cursor()
 
     sql_cur.execute(sql_job_table)
-
     # Ignore the 1st line of file, as it is not data.
     next(infile)
 
@@ -293,12 +300,14 @@ def handler():
         getstat(job, log_line, 'numHostRusage', int)
         job.cal()
         job.job2json(json_outfile)
-        job.job2sql(sql_cur)
+        job.job2sql(sql_con, sql_cur)
         job.job2jssim(jssim_outfile)
 
+    sql_con.commit()
     sql_con.close()
     return
 # handler
+
 
 if __name__ == "__main__":
     handler()
